@@ -21,11 +21,11 @@ public abstract class DataRecord implements Serializable {
         return district;
     }
 
-    public void setId() {
+    public void setId(int id) {
         this.id = id;
     }
 
-    public void setDistrict() {
+    public void setDistrict(String district) {
         this.district = district;
     }
 

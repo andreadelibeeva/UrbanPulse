@@ -6,6 +6,10 @@ import model.SocialIndicator;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.stream.Collectors;
 
 public class DataStore {
     private static final String crimeFile = "crimes.ser";
@@ -19,7 +23,7 @@ public class DataStore {
         try (ObjectOutputStream outStream = new ObjectOutputStream(new FileOutputStream(crimeFile))) {
             outStream.writeObject(crimes);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Could not save crimes: " + e.getMessage());
         }
     }
 
@@ -27,7 +31,7 @@ public class DataStore {
         try (ObjectOutputStream outStream = new ObjectOutputStream(new FileOutputStream(socialFile))) {
             outStream.writeObject(socials);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Could not save socials: " + e.getMessage());
         }
     }
 
@@ -66,6 +70,10 @@ public class DataStore {
     public void saveAll() throws IOException {
         saveCrimes();
         saveSocials();
+    }
+
+    public void clearCrimes() {
+        crimes.clear();
     }
 
     //CRUD - Crimes
@@ -117,6 +125,14 @@ public class DataStore {
                 .findFirst().orElse(null);
     }
 
+    public Map<String, SocialIndicator> getSocialMap() {
+        Map<String, SocialIndicator> m = new HashMap<>();
+        for(SocialIndicator s: socials) {
+            m.put(s.getDistrict(), s);
+        }
+        return m;
+    }
+
     //Helpers
     public int getTotalCrimes() {
         return crimes.size();
@@ -132,21 +148,33 @@ public class DataStore {
 
     public double getArrestRate() {
         if (crimes.isEmpty()) return 0;
-        long arrested = crimes.stream().filter(CrimeRecord::isArrested).count();
+        long arrested = crimes.stream().filter(CrimeRecord::getArrested).count();
         return (arrested / (double) crimes.size()) * 100.0;
     }
 
     public String getTopCrimeType() {
         return crimes.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        CrimeRecord::getCrimeType, java.util.stream.Collectors.counting()))
+                .collect(Collectors.groupingBy(
+                        CrimeRecord::getCrimeType, Collectors.counting()))
                 .entrySet().stream()
-                .max(java.util.Map.Entry.comparingByValue())
-                .map(java.util.Map.Entry::getKey)
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
                 .orElse("N/A");
     }
 
-    ublic java.util.List<String> getDistricts() {
+    public String getPeakHour() {
+        if(crimes.isEmpty()) {
+            return "N/A";
+        }
+        Map<Integer, Long> byHour = crimes.stream()
+                .collect(Collectors.groupingBy(CrimeRecord::getHour, Collectors.counting()));
+        int peak = byHour.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey).orElse(0);
+        return String.format("%02d:00   %02d:00", peak, (peak + 1) % 24);
+    }
+
+    public List<String> getDistricts() {
         return crimes.stream()
                 .map(CrimeRecord::getDistrict)
                 .distinct()
@@ -154,7 +182,7 @@ public class DataStore {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    public java.util.List<String> getCrimeTypes() {
+    public List<String> getCrimeTypes() {
         return crimes.stream()
                 .map(CrimeRecord::getCrimeType)
                 .distinct()
@@ -162,7 +190,7 @@ public class DataStore {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    public java.util.Map<String, Integer> getCrimeCountByDistrict() {
+    public Map<String, Integer> getCrimeCountByDistrict() {
         java.util.Map<String, Integer> map = new java.util.HashMap<>();
         for (CrimeRecord c : crimes) {
             map.merge(c.getDistrict(), 1, Integer::sum);
@@ -170,7 +198,7 @@ public class DataStore {
         return map;
     }
 
-    public java.util.PriorityQueue<java.util.Map.Entry<String, Integer>> getRankedDistricts() {
+    public PriorityQueue<java.util.Map.Entry<String, Integer>> getRankedDistricts() {
         java.util.PriorityQueue<java.util.Map.Entry<String, Integer>> pq =
                 new java.util.PriorityQueue<>(
                         (a, b) -> b.getValue() - a.getValue()
