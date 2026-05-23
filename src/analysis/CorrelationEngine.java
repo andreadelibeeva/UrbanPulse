@@ -26,7 +26,7 @@ public class CorrelationEngine {
         private String interpret(double r) {
             double abs = Math.abs(r);
             String dir = r > 0 ? "positive" : "negative";
-            if(abs >= 0.8) return "Very strong" + dir + "correlation";
+            if(abs >= 0.8) return "Very strong" + dir + " correlation";
             if (abs >= 0.6) return "Strong " + dir + " correlation";
             if (abs >= 0.4) return "Moderate " + dir + " correlation";
             if (abs >= 0.2) return "Weak " + dir + " correlation";
@@ -118,7 +118,7 @@ public class CorrelationEngine {
             double dx = x[i] - meanX;
             double dy = y[i] - meanY;
             num += dx * dy;
-            denomY += dx * dx;
+            denomX += dx * dx;
             denomY += dy * dy;
         }
 

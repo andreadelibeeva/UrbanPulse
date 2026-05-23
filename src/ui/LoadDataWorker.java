@@ -5,16 +5,17 @@ import util.CSVParser;
 import util.DataStore;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.List;
 
 public class LoadDataWorker extends SwingWorker<Integer, String> {
     private final String filePath;
     private final DataStore dataStore;
-    private final JFrame parent;
+    private final MainFrame parent;
     private JDialog dialog;
     private JLabel statusLabel;
 
-    public LoadDataWorker(String filePath, DataStore dataStore, JFrame parent) {
+    public LoadDataWorker(String filePath, DataStore dataStore, MainFrame parent) {
         this.filePath = filePath;
         this.dataStore = dataStore;
         this.parent = parent;
@@ -23,16 +24,24 @@ public class LoadDataWorker extends SwingWorker<Integer, String> {
 
     private void buildDialog() {
         dialog = new JDialog(parent, "Loading...", false);
-        dialog.setSize(340, 100);
+        dialog.setSize(380, 120);
         dialog.setLocationRelativeTo(parent);
-        dialog.setLayout(new java.awt.BorderLayout());
-        JPanel p = new JPanel(new java.awt.GridLayout(2, 1, 6, 6));
-        p.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        dialog.setLayout(new BorderLayout());
+
+        JPanel p = new JPanel(new GridLayout(3, 1, 4, 4));
+        p.setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
         p.setBackground(MainFrame.bgPanel);
-        statusLabel = new JLabel("Parsing CSV...");
-        statusLabel.setForeground(MainFrame.textPrimary);
+        JLabel title = new JLabel("📂  Parsing CSV file…");
+        title.setForeground(MainFrame.accentCyan);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        statusLabel = new JLabel("Reading records…");
+        statusLabel.setForeground(MainFrame.textMuted);
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         JProgressBar bar = new JProgressBar();
         bar.setIndeterminate(true);
+        bar.setForeground(MainFrame.accentCyan);
+        bar.setBackground(MainFrame.bgCard);
+        p.add(title);
         p.add(statusLabel);
         p.add(bar);
         dialog.add(p);
@@ -43,7 +52,8 @@ public class LoadDataWorker extends SwingWorker<Integer, String> {
     protected Integer doInBackground() throws Exception {
         publish("Parsing CSV file...");
         List<CrimeRecord> records = new CSVParser().parseCrimeCSV(filePath);
-        publish("Saving " + records.size() + " records...");
+        publish(String.format("Saving %,d records...", records.size()));
+        dataStore.clearCrimes();
         for (CrimeRecord r : records) dataStore.addCrime(r);
         dataStore.saveCrimes();
         return records.size();

@@ -12,6 +12,8 @@ public class CrimeRecord extends DataRecord {
     private String description;
     private boolean arrested;
     private int hour;
+    private double lat;
+    private double lon;
 
     public CrimeRecord(int id, String district, LocalDate date,
                        String crimeType, String description,
@@ -22,6 +24,8 @@ public class CrimeRecord extends DataRecord {
         this.description = description;
         this.arrested = arrested;
         this.hour = hour;
+        this.lat = 0.0;
+        this.lon = 0.0;
     }
 
     public LocalDate getDate() {
@@ -44,6 +48,14 @@ public class CrimeRecord extends DataRecord {
         return hour;
     }
 
+    public double getLat() {
+        return lat;
+    }
+
+    public double getLon() {
+        return lon;
+    }
+
     public void setDate(LocalDate date) {
         this.date = date;
     }
@@ -62,6 +74,14 @@ public class CrimeRecord extends DataRecord {
 
     public void setHour(int hour) {
         this.hour = hour;
+    }
+
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public void setLon(double lon) {
+        this.lon = lon;
     }
 
     @Override

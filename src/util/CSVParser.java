@@ -13,66 +13,105 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CSVParser {
-    //Chicago dataset date format
+
+    // Chicago dataset date format: MM/dd/yyyy hh:mm:ss a
     private static final DateTimeFormatter CHICAGO_FMT =
             DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm:ss a");
 
-    //Fallback ISO fformat
+    // Fallback ISO format
     private static final DateTimeFormatter ISO_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    //Crime CSV
+    /**
+     * Parses a Chicago crime CSV file.
+     *
+     * Official Chicago CSV column layout (0-indexed):
+     *   0  ID            1  Case Number    2  Date
+     *   3  Block         4  IUCR           5  Primary Type
+     *   6  Description   7  Location Desc  8  Arrest
+     *   9  Domestic      10 Beat           11 District
+     *   12 Ward          13 Community Area 14 FBI Code
+     *   15 X Coordinate  16 Y Coordinate   17 Year
+     *   18 Updated On    19 Latitude       20 Longitude
+     *   21 Location
+     *
+     * Older / hand-crafted CSVs that skip "Case Number" are handled by
+     * auto-detection: if column 1 parses as a date we fall back to the
+     * old offsets so the sample file still loads.
+     */
     public List<CrimeRecord> parseCrimeCSV(String filePath) throws IOException {
         List<CrimeRecord> records = new ArrayList<>();
         int skipped = 0;
         int idCounter = 1;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            reader.readLine();
-            String line;
+            String headerLine = reader.readLine();   // skip header
+            if (headerLine == null) return records;
 
-            while((line = reader.readLine()) != null) {
+            // Auto-detect layout: official file has "Case Number" in column 1
+            boolean officialLayout = headerLine.toLowerCase().contains("case number");
+
+            // Official:  date=2, type=5, desc=6, arrest=8, district=11, lat=19, lon=20
+            // Legacy:    date=1, type=4, desc=5, arrest=7, district=10  (no lat/lon)
+            int iDate     = officialLayout ? 2  : 1;
+            int iType     = officialLayout ? 5  : 4;
+            int iDesc     = officialLayout ? 6  : 5;
+            int iArrest   = officialLayout ? 8  : 7;
+            int iDistrict = officialLayout ? 11 : 10;
+            int iLat      = officialLayout ? 19 : -1;
+            int iLon      = officialLayout ? 20 : -1;
+            int minCols   = officialLayout ? 12 : 11;
+
+            String line;
+            while ((line = reader.readLine()) != null) {
                 try {
                     String[] cols = splitCSV(line);
-                    if (cols.length < 10) {
-                        continue;
-                    }
+                    if (cols.length < minCols) { skipped++; continue; }
 
-                    LocalDate date = parseDate(cols[1].trim());
-                    if (date == null) {
-                        skipped++;
-                        continue;
-                    }
+                    LocalDate date = parseDate(cols[iDate].trim());
+                    if (date == null) { skipped++; continue; }
 
-                    String crimeType = cols[4].trim().toUpperCase();
-                    String description = cols[5].trim();
-                    String district = cols[10].trim();
-                    boolean arrested = "true".equalsIgnoreCase(cols[7].trim());
-                    int hour = extractHour(cols[1].trim());
+                    String crimeType = cols[iType].trim().toUpperCase();
+                    String description = cols[iDesc].trim();
+                    String district = cols[iDistrict].trim();
+                    boolean arrested = "true".equalsIgnoreCase(cols[iArrest].trim());
+                    int hour = extractHour(cols[iDate].trim());
 
-                    records.add(new CrimeRecord(
+                    CrimeRecord rec = new CrimeRecord(
                             idCounter++, district, date,
-                            crimeType, description, arrested, hour
-                    ));
+                            crimeType, description, arrested, hour);
 
-                    if(records.size() >= 10000) {
-                        break;
+                    // Parse lat / lon when available
+                    if (iLat >= 0 && iLon >= 0
+                            && cols.length > iLon
+                            && !cols[iLat].trim().isEmpty()
+                            && !cols[iLon].trim().isEmpty()) {
+                        try {
+                            rec.setLat(Double.parseDouble(cols[iLat].trim()));
+                            rec.setLon(Double.parseDouble(cols[iLon].trim()));
+                        } catch (NumberFormatException ignored) {}
                     }
+
+                    records.add(rec);
+                    if (records.size() >= 10_000) break;
+
                 } catch (Exception e) {
                     skipped++;
                 }
             }
         }
 
-        System.out.printf("Parse %d records. Skipped %d.%n", records.size(), skipped);
+        System.out.printf("Parsed %d records. Skipped %d.%n", records.size(), skipped);
         return records;
     }
+
+    // ── helpers ─────────────────────────────────────────────────────────────
 
     private String[] splitCSV(String line) {
         List<String> tokens = new ArrayList<>();
         boolean inQuotes = false;
         StringBuilder sb = new StringBuilder();
-        for(char c : line.toCharArray()) {
+        for (char c : line.toCharArray()) {
             if (c == '"') {
                 inQuotes = !inQuotes;
             } else if (c == ',' && !inQuotes) {
@@ -103,12 +142,8 @@ public class CSVParser {
             String[] parts = dateStr.split(" ");
             if (parts.length >= 3) {
                 int h = Integer.parseInt(parts[1].split(":")[0]);
-                if ("PM".equals(parts[2]) && h != 12) {
-                    h += 12;
-                }
-                if("AM".equals(parts[2]) && h == 12) {
-                    h = 0;
-                }
+                if ("PM".equalsIgnoreCase(parts[2]) && h != 12) h += 12;
+                if ("AM".equalsIgnoreCase(parts[2]) && h == 12) h  = 0;
                 return h;
             }
         } catch (Exception ignored) {}

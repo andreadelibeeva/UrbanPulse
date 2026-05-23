@@ -14,43 +14,49 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ChicagoDataAPI {
-    private static final String endpoint =
+    private static final String ENDPOINT =
             "https://data.cityofchicago.org/resource/ijzp-q8t2.json";
+
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(20))
             .build();
 
     public List<CrimeRecord> fetchRecentCrimes(int limit) throws Exception {
         int safeLimit = Math.max(1, Math.min(limit, 50_000));
-        String url = endpoint + "limit" + safeLimit + "&$order = date DESC";
+        String url = ENDPOINT + "?$limit=" + safeLimit + "&$order=date DESC";
 
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Accept", "application/json")
-                .timeout(Duration.ofSeconds(45))
+                .timeout(Duration.ofSeconds(60))
                 .GET()
                 .build();
 
         HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
-        if(resp.statusCode() != 200) {
-            throw new RuntimeException("Chicago API returned HTTP" + resp.statusCode());
+        if (resp.statusCode() != 200) {
+            throw new RuntimeException("Chicago API returned HTTP " + resp.statusCode());
         }
         return parseJsonArray(resp.body());
     }
 
-    private static final Pattern objectRx = Pattern.compile("\\{[^\\{\\}]*\\}");
+    // Matches individual JSON objects (non-nested)
+    private static final Pattern OBJECT_RX = Pattern.compile("\\{[^\\{\\}]*\\}");
 
     private List<CrimeRecord> parseJsonArray(String body) {
         List<CrimeRecord> out = new ArrayList<>();
-        Matcher m = objectRx.matcher(body);
+        Matcher m = OBJECT_RX.matcher(body);
         int idCounter = 1;
+
         while (m.find()) {
             String obj = m.group();
+
             String district = field(obj, "district");
             String dateStr  = field(obj, "date");
             String type     = field(obj, "primary_type");
             String desc     = field(obj, "description");
             String arrestS  = field(obj, "arrest");
+            String latS     = field(obj, "latitude");
+            String lonS     = field(obj, "longitude");
 
             if (district.isEmpty() || dateStr.isEmpty() || type.isEmpty()) continue;
 
@@ -59,21 +65,34 @@ public class ChicagoDataAPI {
             try {
                 // Socrata ISO timestamp: 2024-10-21T14:33:00.000
                 date = LocalDate.parse(dateStr.substring(0, 10));
-                hour = Integer.parseInt(dateStr.substring(11, 13));
+                if (dateStr.length() >= 13) {
+                    hour = Integer.parseInt(dateStr.substring(11, 13));
+                }
             } catch (Exception e) {
                 continue;
             }
+
             boolean arrested = "true".equalsIgnoreCase(arrestS);
 
-            out.add(new CrimeRecord(
+            CrimeRecord rec = new CrimeRecord(
                     idCounter++, district, date,
-                    type.toUpperCase(), desc, arrested, hour));
+                    type.toUpperCase(), desc, arrested, hour);
+
+            // Parse geographic coordinates
+            if (!latS.isEmpty() && !lonS.isEmpty()) {
+                try {
+                    rec.setLat(Double.parseDouble(latS));
+                    rec.setLon(Double.parseDouble(lonS));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            out.add(rec);
         }
         return out;
     }
 
     private String field(String obj, String key) {
-        Pattern p = Pattern.compile("" + key + "\\s*:\\s*\\([^\\]*)");
+        Pattern p = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]*)\"");
         Matcher m = p.matcher(obj);
         return m.find() ? m.group(1) : "";
     }
