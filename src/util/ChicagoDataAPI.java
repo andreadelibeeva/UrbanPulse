@@ -14,42 +14,83 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ChicagoDataAPI {
+
     private static final String ENDPOINT =
             "https://data.cityofchicago.org/resource/ijzp-q8t2.json";
 
     private final HttpClient http = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(20))
+            .connectTimeout(Duration.ofSeconds(30))
             .build();
 
     public List<CrimeRecord> fetchRecentCrimes(int limit) throws Exception {
         int safeLimit = Math.max(1, Math.min(limit, 50_000));
-        String url = ENDPOINT + "?$limit=" + safeLimit + "&$order=date DESC";
+
+       URI uri = new URI(
+                "https",
+                "data.cityofchicago.org",
+                "/resource/ijzp-q8t2.json",
+                "$limit=" + safeLimit + "&$order=date DESC",
+                null
+        );
 
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Accept", "application/json")
-                .timeout(Duration.ofSeconds(60))
+                .uri(uri)
+                .header("Accept",     "application/json")
+                .header("User-Agent", "UrbanPulse/1.0 (school-project)")
+                .timeout(Duration.ofSeconds(90))
                 .GET()
                 .build();
 
         HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
         if (resp.statusCode() != 200) {
-            throw new RuntimeException("Chicago API returned HTTP " + resp.statusCode());
+            throw new RuntimeException(
+                    "Chicago API returned HTTP " + resp.statusCode()
+                            + ". Body: " + resp.body().substring(0, Math.min(200, resp.body().length())));
         }
-        return parseJsonArray(resp.body());
+
+        List<CrimeRecord> result = parseJsonArray(resp.body());
+        if (result.isEmpty()) {
+            throw new RuntimeException(
+                    "API responded OK but returned 0 parseable records. "
+                            + "The response format may have changed.");
+        }
+        return result;
     }
 
-    // Matches individual JSON objects (non-nested)
-    private static final Pattern OBJECT_RX = Pattern.compile("\\{[^\\{\\}]*\\}");
+    private List<String> splitTopLevelObjects(String json) {
+        List<String> out = new ArrayList<>();
+        int depth = 0;
+        int start = -1;
+        boolean inString = false;
+        boolean escaped  = false;
+
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+
+            if (escaped)           { escaped = false; continue; }
+            if (c == '\\' && inString) { escaped = true; continue; }
+            if (c == '"')          { inString = !inString; continue; }
+            if (inString)          continue;
+
+            if (c == '{') {
+                if (depth == 0) start = i;
+                depth++;
+            } else if (c == '}') {
+                depth--;
+                if (depth == 0 && start >= 0) {
+                    out.add(json.substring(start, i + 1));
+                    start = -1;
+                }
+            }
+        }
+        return out;
+    }
 
     private List<CrimeRecord> parseJsonArray(String body) {
         List<CrimeRecord> out = new ArrayList<>();
-        Matcher m = OBJECT_RX.matcher(body);
         int idCounter = 1;
 
-        while (m.find()) {
-            String obj = m.group();
-
+        for (String obj : splitTopLevelObjects(body)) {
             String district = field(obj, "district");
             String dateStr  = field(obj, "date");
             String type     = field(obj, "primary_type");
@@ -75,10 +116,9 @@ public class ChicagoDataAPI {
             boolean arrested = "true".equalsIgnoreCase(arrestS);
 
             CrimeRecord rec = new CrimeRecord(
-                    idCounter++, district, date,
-                    type.toUpperCase(), desc, arrested, hour);
+                    idCounter++, district.trim(), date,
+                    type.trim().toUpperCase(), desc.trim(), arrested, hour);
 
-            // Parse geographic coordinates
             if (!latS.isEmpty() && !lonS.isEmpty()) {
                 try {
                     rec.setLat(Double.parseDouble(latS));
@@ -91,9 +131,14 @@ public class ChicagoDataAPI {
         return out;
     }
 
+    private static final Pattern FIELD_RX =
+            Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]*)\"");
+
     private String field(String obj, String key) {
-        Pattern p = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]*)\"");
-        Matcher m = p.matcher(obj);
-        return m.find() ? m.group(1) : "";
+        Matcher m = FIELD_RX.matcher(obj);
+        while (m.find()) {
+            if (m.group(1).equalsIgnoreCase(key)) return m.group(2);
+        }
+        return "";
     }
 }

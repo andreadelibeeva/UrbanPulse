@@ -22,23 +22,6 @@ public class CSVParser {
     private static final DateTimeFormatter ISO_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    /**
-     * Parses a Chicago crime CSV file.
-     *
-     * Official Chicago CSV column layout (0-indexed):
-     *   0  ID            1  Case Number    2  Date
-     *   3  Block         4  IUCR           5  Primary Type
-     *   6  Description   7  Location Desc  8  Arrest
-     *   9  Domestic      10 Beat           11 District
-     *   12 Ward          13 Community Area 14 FBI Code
-     *   15 X Coordinate  16 Y Coordinate   17 Year
-     *   18 Updated On    19 Latitude       20 Longitude
-     *   21 Location
-     *
-     * Older / hand-crafted CSVs that skip "Case Number" are handled by
-     * auto-detection: if column 1 parses as a date we fall back to the
-     * old offsets so the sample file still loads.
-     */
     public List<CrimeRecord> parseCrimeCSV(String filePath) throws IOException {
         List<CrimeRecord> records = new ArrayList<>();
         int skipped = 0;
