@@ -87,8 +87,7 @@ public class PolicyBriefPanel extends JPanel {
 
         JButton exportBtn = new JButton("⬇ Export .txt");
         exportBtn.setBackground(MainFrame.accentGold);
-        exportBtn.setForeground(Color.BLACK);
-        exportBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        exportBtn.setForeground(MainFrame.theme.light ? Color.WHITE : Color.BLACK);        exportBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         exportBtn.setBorderPainted(false);
         exportBtn.setFocusPainted(false);
         exportBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

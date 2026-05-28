@@ -70,11 +70,11 @@ public class DashboardPanel extends JPanel {
         left.setOpaque(false);
 
         JLabel title = new JLabel("Dashboard Overview");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        title.setFont(new Font(MainFrame.fontDisplay(), Font.BOLD, 28));
         title.setForeground(MainFrame.textPrimary);
 
         statusLabel = new JLabel("Load data to begin analysis");
-        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        statusLabel.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
         statusLabel.setForeground(MainFrame.textMuted);
 
         left.add(title);
@@ -82,7 +82,7 @@ public class DashboardPanel extends JPanel {
         header.add(left, BorderLayout.WEST);
 
         lastUpdatedLabel = new JLabel("—");
-        lastUpdatedLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lastUpdatedLabel.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 11));
         lastUpdatedLabel.setForeground(MainFrame.textDim);
         header.add(lastUpdatedLabel, BorderLayout.EAST);
 
@@ -118,8 +118,8 @@ public class DashboardPanel extends JPanel {
 
                 // card background gradient
                 GradientPaint bgGrad = new GradientPaint(
-                        0, 0,           new Color(0x161635),
-                        0, getHeight(), new Color(0x0D0D28));
+                        0, 0,           MainFrame.bgCard2,
+                        0, getHeight(), MainFrame.bgCard);
                 g2.setPaint(bgGrad);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
 
@@ -148,7 +148,7 @@ public class DashboardPanel extends JPanel {
 
         // symbol top-right
         JLabel sym = new JLabel(symbol);
-        sym.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        sym.setFont(new Font(MainFrame.fontUI(), Font.BOLD, 22));
         sym.setForeground(new Color(accent.getRed(), accent.getGreen(), accent.getBlue(), 60));
         sym.setHorizontalAlignment(SwingConstants.RIGHT);
         card.add(sym, BorderLayout.NORTH);
@@ -156,12 +156,12 @@ public class DashboardPanel extends JPanel {
         JPanel center = new JPanel(new GridLayout(2, 1, 0, 4));
         center.setOpaque(false);
 
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        valueLabel.setFont(new Font(MainFrame.fontDisplay(), Font.BOLD, 28));
         valueLabel.setForeground(accent);
         center.add(valueLabel);
 
         JLabel lbl = new JLabel(label);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 9));
+        lbl.setFont(new Font(MainFrame.fontUI(), Font.BOLD, 9));
         lbl.setForeground(MainFrame.textMuted);
         lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
         center.add(lbl);
@@ -195,11 +195,11 @@ public class DashboardPanel extends JPanel {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 GradientPaint bg = new GradientPaint(
-                        0, 0,           new Color(0x141435),
-                        0, getHeight(), new Color(0x0E0E28));
+                        0, 0,           MainFrame.bgCard2,
+                        0, getHeight(), MainFrame.bgCard);
                 g2.setPaint(bg);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
-                g2.setColor(new Color(0x1E1E45));
+                g2.setColor(MainFrame.divider);
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
                 g2.dispose();
                 super.paintComponent(g);
@@ -213,7 +213,7 @@ public class DashboardPanel extends JPanel {
         titleRow.setBorder(new EmptyBorder(0, 0, 12, 0));
 
         JLabel titleLbl = new JLabel(title);
-        titleLbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        titleLbl.setFont(new Font(MainFrame.fontUI(), Font.BOLD, 13));
         titleLbl.setForeground(MainFrame.textPrimary);
 
         // colored underline accent dot
@@ -302,7 +302,7 @@ public class DashboardPanel extends JPanel {
         if (rows.isEmpty()) {
             JLabel ph = new JLabel("No data yet");
             ph.setForeground(MainFrame.textDim);
-            ph.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            ph.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
             ph.setBorder(new EmptyBorder(12, 4, 4, 4));
             list.add(ph);
         } else {
@@ -320,11 +320,11 @@ public class DashboardPanel extends JPanel {
                 setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
 
                 JLabel name = new JLabel(truncate(label, 24));
-                name.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                name.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
                 name.setForeground(MainFrame.textPrimary);
 
                 JLabel cnt = new JLabel(String.format("%,d", count));
-                cnt.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                cnt.setFont(new Font(MainFrame.fontUI(), Font.BOLD, 12));
                 cnt.setForeground(accent);
 
                 add(name, BorderLayout.WEST);
@@ -338,7 +338,7 @@ public class DashboardPanel extends JPanel {
                 double ratio = max > 0 ? (double) count / max : 0;
                 int barW = (int)(getWidth() * ratio * 0.85);
                 // bar track
-                g2.setColor(new Color(0x1A1A3A));
+                g2.setColor(MainFrame.surface);
                 g2.fillRoundRect(0, getHeight() - 4, getWidth(), 3, 3, 3);
                 // bar fill
                 GradientPaint gp = new GradientPaint(0, 0, accent,

@@ -42,11 +42,11 @@ public class HeatmapPanel extends JPanel {
         titleBlock.setBackground(MainFrame.bgDark);
 
         JLabel title = new JLabel("Chicago Crime Map");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        title.setFont(new Font(MainFrame.fontDisplay(), Font.BOLD, 28));
         title.setForeground(MainFrame.textPrimary);
 
         JLabel sub = new JLabel("Scroll to zoom  ·  Drag to pan  ·  Hover a dot for details");
-        sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        sub.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
         sub.setForeground(MainFrame.textMuted);
 
         titleBlock.add(title);
@@ -59,14 +59,14 @@ public class HeatmapPanel extends JPanel {
 
         JLabel filterLabel = new JLabel("Filter:");
         filterLabel.setForeground(MainFrame.textMuted);
-        filterLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        filterLabel.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
 
         filterCombo = new JComboBox<>(new String[]{"All Crime Types"});
-        filterCombo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        filterCombo.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
         filterCombo.addActionListener(e -> canvas.repaint());
 
         JButton resetBtn = new JButton("Reset View");
-        resetBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        resetBtn.setFont(new Font(MainFrame.fontUI(), Font.BOLD, 12));
         resetBtn.setBackground(new Color(0x2A3A5A));
         resetBtn.setForeground(MainFrame.textPrimary);
         resetBtn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
@@ -92,7 +92,7 @@ public class HeatmapPanel extends JPanel {
 
         // status bar
         statusLabel = new JLabel(" ");
-        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        statusLabel.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
         statusLabel.setForeground(MainFrame.textMuted);
         statusLabel.setBorder(new EmptyBorder(8, 32, 16, 32));
         statusLabel.setBackground(MainFrame.bgDark);
@@ -424,8 +424,8 @@ public class HeatmapPanel extends JPanel {
             String l1 = c.getCrimeType();
             String l2 = c.getDescription();
             String l3 = "District " + c.getDistrict() + "   ·   " + c.getDate();
-            Font bold  = new Font("Segoe UI", Font.BOLD,  12);
-            Font plain = new Font("Segoe UI", Font.PLAIN, 11);
+            Font bold  = new Font(MainFrame.fontUI(), Font.BOLD,  12);
+            Font plain = new Font(MainFrame.fontUI(), Font.PLAIN, 11);
             g2.setFont(bold);
             FontMetrics fm1 = g2.getFontMetrics();
             g2.setFont(plain);
@@ -458,8 +458,8 @@ public class HeatmapPanel extends JPanel {
         private void drawLegend(Graphics2D g2, Map<String, Color> colorMap, int total) {
             if (colorMap.isEmpty()) return;
             int maxShow = Math.min(colorMap.size(), 10);
-            Font f  = new Font("Segoe UI", Font.PLAIN, 11);
-            Font fb = new Font("Segoe UI", Font.BOLD,  11);
+            Font f  = new Font(MainFrame.fontUI(), Font.PLAIN, 11);
+            Font fb = new Font(MainFrame.fontUI(), Font.BOLD,  11);
             g2.setFont(f);
             FontMetrics fm = g2.getFontMetrics();
             int lineH = 18;
@@ -509,7 +509,7 @@ public class HeatmapPanel extends JPanel {
 
         private void drawZoomBadge(Graphics2D g2) {
             String txt = "Zoom " + zoom;
-            Font f = new Font("Segoe UI", Font.BOLD, 11);
+            Font f = new Font(MainFrame.fontUI(), Font.BOLD, 11);
             g2.setFont(f);
             FontMetrics fm = g2.getFontMetrics();
             int w = fm.stringWidth(txt) + 16;
@@ -523,7 +523,7 @@ public class HeatmapPanel extends JPanel {
         }
 
         private void drawMessage(Graphics2D g2, String msg) {
-            Font f = new Font("Segoe UI", Font.PLAIN, 14);
+            Font f = new Font(MainFrame.fontUI(), Font.PLAIN, 14);
             g2.setFont(f);
             FontMetrics fm = g2.getFontMetrics();
             int w = fm.stringWidth(msg) + 32;

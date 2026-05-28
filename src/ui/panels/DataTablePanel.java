@@ -38,7 +38,7 @@ public class DataTablePanel extends JPanel {
         header.setBorder(new EmptyBorder(28, 32, 16, 32));
 
         JLabel title = new JLabel("Crime Records");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        title.setFont(new Font(MainFrame.fontDisplay(), Font.BOLD, 28));
         title.setForeground(MainFrame.textPrimary);
         header.add(title, BorderLayout.NORTH);
         header.add(buildFilterBar(), BorderLayout.SOUTH);
@@ -67,20 +67,20 @@ public class DataTablePanel extends JPanel {
 
         searchField = new JTextField(18);
         searchField.putClientProperty("JTextField.placeholderText", "Search description or crime type...");
-        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        searchField.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
         searchField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) { applyFilters(); }
         });
 
         districtFilter = new JComboBox<>();
         typeFilter = new JComboBox<>();
-        districtFilter.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        typeFilter.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        districtFilter.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
+        typeFilter.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
         districtFilter.addActionListener(e -> applyFilters());
         typeFilter.addActionListener(e -> applyFilters());
 
         countLabel = new JLabel("0 records");
-        countLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        countLabel.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
         countLabel.setForeground(MainFrame.textMuted);
 
         bar.add(new JLabel(styledLabel("🔍 Search:")));
@@ -100,10 +100,10 @@ public class DataTablePanel extends JPanel {
         bar.setBackground(MainFrame.bgDark);
         bar.setBorder(new EmptyBorder(4, 32, 12, 32));
 
-        JButton addBtn    = actionButton("+ Add Record",    MainFrame.accentCyan, Color.BLACK);
-        JButton editBtn   = actionButton("✎ Edit",          MainFrame.accentGold, Color.BLACK);
+        JButton addBtn    = actionButton("+ Add Record",    MainFrame.accentCyan, MainFrame.theme.light ? Color.WHITE : Color.BLACK);
+        JButton editBtn   = actionButton("✎ Edit",          MainFrame.accentGold, MainFrame.theme.light ? Color.WHITE : Color.BLACK);
         JButton deleteBtn = actionButton("✕ Delete",        MainFrame.accentRed,  Color.WHITE);
-        JButton clearBtn  = actionButton("⚠ Clear All",     new Color(0x444455), Color.WHITE);
+        JButton clearBtn  = actionButton("⚠ Clear All",     MainFrame.surfaceHover, MainFrame.textPrimary);
 
         addBtn.addActionListener(e -> openAddDialog());
         editBtn.addActionListener(e -> openEditDialog());
@@ -122,7 +122,7 @@ public class DataTablePanel extends JPanel {
         JButton btn = new JButton(text);
         btn.setBackground(bg);
         btn.setForeground(fg);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setFont(new Font(MainFrame.fontUI(), Font.BOLD, 12));
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -132,7 +132,7 @@ public class DataTablePanel extends JPanel {
     private void styleTable() {
         table.setBackground(MainFrame.bgCard);
         table.setForeground(MainFrame.textPrimary);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
         table.setRowHeight(28);
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 1));
@@ -143,7 +143,7 @@ public class DataTablePanel extends JPanel {
         JTableHeader th = table.getTableHeader();
         th.setBackground(new Color(0x0F1928));
         th.setForeground(MainFrame.textMuted);
-        th.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        th.setFont(new Font(MainFrame.fontUI(), Font.BOLD, 11));
         th.setPreferredSize(new Dimension(0, 32));
 
         table.getColumnModel().getColumn(0).setPreferredWidth(55);

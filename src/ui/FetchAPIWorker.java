@@ -32,10 +32,10 @@ public class FetchAPIWorker extends SwingWorker<Integer, String> {
 
         JComboBox<String> countCombo = new JComboBox<>(options);
         countCombo.setSelectedIndex(1);
-        countCombo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        countCombo.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 13));
 
         JCheckBox replaceBox = new JCheckBox("Replace existing data", true);
-        replaceBox.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        replaceBox.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
         replaceBox.setForeground(MainFrame.textPrimary);
         replaceBox.setBackground(MainFrame.bgCard);
         replaceBox.setOpaque(false);
@@ -69,11 +69,11 @@ public class FetchAPIWorker extends SwingWorker<Integer, String> {
 
         JLabel title = new JLabel("🌐  Connecting to Chicago Data Portal…");
         title.setForeground(MainFrame.accentCyan);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        title.setFont(new Font(MainFrame.fontUI(), Font.BOLD, 13));
 
         statusLabel = new JLabel("Sending request…");
         statusLabel.setForeground(MainFrame.textMuted);
-        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        statusLabel.setFont(new Font(MainFrame.fontUI(), Font.PLAIN, 12));
 
         bar = new JProgressBar();
         bar.setIndeterminate(true);
